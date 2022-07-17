@@ -1,0 +1,20 @@
+
+wind + fire -> BIG DAMAGE FIRE TORNADO
+wind + water -> Rain cloud, for the rest of the game the enemy hash lower attack
+wind + rock -> High damage attack
+
+fire + wind -> - | -
+fire + water -> vapor, deals damage every turn from now on
+fire + rock -> next rock move deals double damage
+
+water + fire -> - | -
+water + wind -> - | -
+water + rock -> Nothing happense
+
+rock + fire -> - | -
+rock + water -> - | -
+rock + wind -> - | -
+
+
+void + element -> Imune to attacks involving element for the rest of the game
+everything + itself -> 150% damage, nothing special

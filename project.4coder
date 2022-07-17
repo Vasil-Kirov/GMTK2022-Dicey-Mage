@@ -1,0 +1,64 @@
+version(1);
+
+/* Your project name goes here */
+project_name = "ProjectName";
+
+patterns = {
+	"*.c",
+	"*.h",
+	"*.cpp",
+	"*.bat",
+	"*.sh",
+	"*.4coder",
+	"*.vert",
+	"*.frag",
+	"*.glsl"
+};
+
+blacklist_patterns = {
+	".*"
+};
+
+load_paths = {
+	{ {".", .relative = true, .recursive = true}, {.os = "win"}},
+	{ {".", .relative = true, .recursive = true}, {.os = "linux"}}
+};
+
+command_list = {
+	/* Builds the project with debug info */
+	{
+		.name = "build",
+		.out = "*compilation*",
+		.footer_panel = true,
+		.save_dirty_files = true,
+		.cursor_at_end = false,
+		.cmd = { { "build.bat", .os = "win"}, 
+				 { "build.sh",  .os ="linux"}, },
+	},
+	
+	/* Runs the main executable */
+	{
+		.name = "run",
+		.out = "*run*",
+		.footer_panel = false,
+		.save_dirty_files = false,
+		.cursro_at_end = true,
+		.cmd = { {"build\main.exe", .os = "win"},
+				 {"build\main", .os = "linux"}, },
+	},
+	
+	/* Opens Visual Studio on Windows, does nothing on Linux */
+	{
+		.name = "vstudio",
+		.out = "",
+		.footer_panel = false,
+		.save_dirty_files = false,
+		.cursor_at_end = false,
+		.cmd = { { "devenv build\main.exe", .os = "win"}, }, 
+	},
+};
+
+fkey_command[1]  = "build";
+fkey_command[2]  = "run";
+fkey_command[10] = "vstudio";
+
