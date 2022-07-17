@@ -44,7 +44,6 @@ const Init_Info resolutions[] = {
 Init_Info get_display_res()
 {
 	SDL_DisplayMode mode;
-	int i = 0;
 	SDL_GetDisplayMode(0, 0, &mode);
 	int mode_count = SDL_GetNumDisplayModes(0);
 	if(mode_count == 0)
@@ -134,6 +133,7 @@ int main(int argc, char *argv[])
 		{
 			case 0: {} break;
 			case 1:
+			case 2:
 			{
 				game_update();
 			} break;

@@ -19,7 +19,7 @@ REM **********************************************
 SET Name=main
 
 
-SET CompilerFlags=%CompilerFlags% -nologo -fp:fast -wd4100
+SET CompilerFlags=%CompilerFlags% -nologo -fp:fast -wd4100 -wd4201
 SET Libraries=kernel32.lib user32.lib Gdi32.lib OpenGL32.lib ..\libs\*.lib
 SET Includes=-I ..\includes
 

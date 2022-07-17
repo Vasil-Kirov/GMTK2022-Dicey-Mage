@@ -160,6 +160,7 @@ void r_present(void)
 
 void r_compile_shaders(void)
 {
+	/*
 	SDL_RWops *vert_file = SDL_RWFromFile("code/shaders/shader.vert", "r");
 	SDL_RWops *frag_file = SDL_RWFromFile("code/shaders/shader.frag", "r");
 	if(!vert_file)
@@ -171,16 +172,45 @@ void r_compile_shaders(void)
 	size_t frag_src_size = frag_file->size(frag_file);
 	if(vert_src_size == -1 || frag_src_size == -1)
 		V_FATAL("Couldn't determine shader file size: %d", SDL_GetError());
+	*/
 	
-	char *vertex_shader_src = alloca(vert_src_size);
-	char *fragment_shader_src = alloca(frag_src_size);
-	if(vert_file->read(vert_file, vertex_shader_src, vert_src_size, 1) == 0)
+	const char *vertex_shader_src = "#version 330 core\n"
+		"\n"
+		"layout (location = 0) in vec2 position;\n"
+		"layout (location = 1) in vec2 texture;\n"
+		"\n"
+		"out vec2 texture_coords;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_Position = vec4(position.x, position.y, 1, 1);\n"
+		"    texture_coords = texture;\n"
+		"}";
+	const char *fragment_shader_src = "#version 330 core\n"
+		"out vec4 frag_color;\n"
+		"in  vec2  texture_coords;\n"
+		"\n"
+		"uniform int       texture_index = 0;\n"
+		"uniform sampler2D texture1;\n"
+		"uniform vec4      color;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    vec4 texture_result = texture(texture1, texture_coords);\n"
+		"    if(texture_index == 0)\n"
+		"        frag_color = texture_result.r * color;\n"
+		"    else\n"
+		"        frag_color = texture_result * color;\n"
+		"}";
+	/*
+if(vert_file->read(vert_file, vertex_shader_src, vert_src_size, 1) == 0)
 		V_FATAL("Failed to read vertex shader source file: %d", SDL_GetError());
 	if(frag_file->read(frag_file, fragment_shader_src, frag_src_size, 1) == 0)
 		V_FATAL("Failed to read fragment shader source file: %d", SDL_GetError());
 	
 	vert_file->close(vert_file);
 	frag_file->close(frag_file);
+	*/
 	
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -340,7 +370,7 @@ void load_data_file()
 {
 	char asset_file_path[4096] = {0};
 	strcat(asset_file_path, base_path);
-	strcat(asset_file_path, "../assets/output.vdata");
+	strcat(asset_file_path, "assets/output.vdata");
 	SDL_RWops *asset_file = SDL_RWFromFile(asset_file_path, "rb");
 	if(!asset_file)
 		V_FATAL("Couldn't find data file");

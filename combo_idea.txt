@@ -9,7 +9,7 @@ fire + rock -> next rock move deals double damage
 
 water + fire -> - | -
 water + wind -> - | -
-water + rock -> Nothing happense
+water + rock -> Deals damage, surpasses imunities but charged rock doesn't work
 
 rock + fire -> - | -
 rock + water -> - | -

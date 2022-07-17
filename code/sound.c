@@ -51,7 +51,8 @@ SDL_AudioSpec load_sounds()
 void play_sound(const char *sound_name)
 {
 	Sound_Info sound = shget(sounds, sound_name);
-	int status = SDL_QueueAudio(audio_device, sound.wave_start, sound.wave_len);
+	SDL_QueueAudio(audio_device, sound.wave_start, sound.wave_len);	
+	
 	SDL_PauseAudioDevice(audio_device, 0);
 }
 

@@ -88,6 +88,7 @@ void update_entities()
 			Entity *e = &entities[i];
 			if(e->flags & E_CAN_DIE && e->hp <= 0)
 			{
+				e->hp = 0;
 				if(e->on_death)
 					e->on_death(e);
 				e->is_valid = false;
@@ -126,9 +127,9 @@ void light_up_color(Entity *e)
 	e_color.g += to_add.g;
 	e_color.b += to_add.b;
 */
-	e_color.r = truncate(e_color.r + 100);
-	e_color.g = truncate(e_color.g + 100);
-	e_color.b = truncate(e_color.b + 100);
+	e_color.r = (u8)truncate(e_color.r + 100);
+	e_color.g = (u8)truncate(e_color.g + 100);
+	e_color.b = (u8)truncate(e_color.b + 100);
 	e->color = e_color.c;
 }
 

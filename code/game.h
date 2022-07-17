@@ -34,6 +34,7 @@ typedef enum
 	E_WIND_IMMUNE  = 1 << 6,
 	E_ROCK_CHARGED = 1 << 7,
 	E_ATTACK_LOWERED = 1 << 8,
+	E_SWITCHED_ANIMATION = 1 << 9,
 } Entity_State;
 
 typedef struct
@@ -54,6 +55,7 @@ typedef enum
 	ICON_COUNT
 } Icon_State;
 
+b32 ai_pick_elements(Icon_State *elem1, Icon_State *elem2);
 void draw_text(Schedule_Tracker *tracker);
 
 void ai_take_turn(Schedule_Tracker *tracker);
