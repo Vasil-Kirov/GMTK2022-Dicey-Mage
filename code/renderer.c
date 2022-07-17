@@ -299,7 +299,7 @@ void r_init(Init_Info info)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	
 	/* Create window and context */
-	window = SDL_CreateWindow("Template Window",
+	window = SDL_CreateWindow("Dicey Mage",
 							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 							  info.width, info.height,
 							  SDL_WINDOW_OPENGL);
@@ -390,7 +390,9 @@ void load_data_file()
 		assert(*CONSUME(u8) == 'h');
 		assert(*CONSUME(u8) == '\0');
 		size_t name_len = strlen((char *)data) + 1;
-		u8 *name = data;
+		u8 *name = ALLOC_PERM(name_len);
+		memcpy(name, data, name_len);
+		
 		_consume(&data, start, file_size, name_len);
 		u32 img_size = *CONSUME(u32);
 		u32 width  = *CONSUME(u32);
@@ -423,7 +425,7 @@ void load_data_file()
 		shput(texture_map, name, desc);
 		
 	}
-	SDL_free(data);
+	SDL_free(start);
 }
 
 Texture_Desc get_texture_by_name(const char *name)

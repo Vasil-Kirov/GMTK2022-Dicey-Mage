@@ -6,7 +6,7 @@ static const char * const level_labels[] = {
 	"[FATAL] ", "[ERROR] ", "[WARN] ", "[DEBUG] ", "[INFO] "
 };
 
-static char *log_file_path;
+static char log_file_path[1024];
 static SDL_RWops *log_file;
 
 #ifndef _WIN32
@@ -19,7 +19,7 @@ static const u8 color_codes[] = {13, 4, 6, FOREGROUND_GREEN | FOREGROUND_INTENSI
 void
 initialize_logger()
 {
-	log_file_path = SDL_GetBasePath();
+	strncpy(log_file_path, SDL_GetBasePath(), 1024);
 	if(log_file_path == NULL)
 	{
 		_log(LOG_WARN, "Couldn't initialize logger, failed to get the path to the log file");
