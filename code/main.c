@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 			} break;
 		}
 		
-		r_draw_text(fps_counter, -.95, .8, 0xFF000CFF, 1.0f);
+		//r_draw_text(fps_counter, -.95, .8, 0xFF000CFF, 1.0f);
 		r_present();
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);

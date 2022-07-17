@@ -14,7 +14,7 @@ static int last_player_icon;
 static int last_enemy_icon;
 static int attack_frame = 0;
 static Entity *attack_animation;
-
+static b32 player_won = false;
 
 void game_update()
 {
@@ -31,7 +31,7 @@ void game_update()
 					end_message->color = 0xFFFFFFFF;
 					end_message->scaler = 1.0f;
 					end_message->pos = V2(-.9f, .8f);
-					if(!c_enemy || !c_enemy->is_valid)
+					if(!player_won)
 					{
 						end_message->text = "You lost :(";
 					}
@@ -82,6 +82,11 @@ void game_update()
 					const char *output = perform_attack_combination(c_player, c_enemy,
 																	clicked_icons[0]->state,
 																	clicked_icons[1]->state);
+					if(c_enemy->hp <= 0)
+					{
+						player_won = true;
+						goto GAME_PANIC_OR_END;
+					}
 					clicked_icons_count = 0;
 					is_player_turn = false;
 					needs_helper_text = false;
@@ -160,7 +165,10 @@ void ai_take_turn(Schedule_Tracker *tracker)
 													elem1,
 													elem2);
 	
-	
+	if(c_player->hp <= 0)
+	{
+		player_won = false;
+	}
 	Text_Info *text_info = ALLOC_PERM(sizeof(Text_Info));
 	text_info->text = output;
 	text_info->pos = V2((c_enemy->position.x / 10)-.1f,
@@ -305,7 +313,7 @@ const char *perform_wind_combination(Icon_State element, Entity *doer, Entity *v
 		{
 			if(!is_immune_to_element(victim, ICON_FIRE))
 				victim->hp -= attack * 3;
-			return "A fire tornado forms around your enemy, ouch...";
+			return "A fire tornado forms\naround your enemy, ouch...";
 		} break;
 		case ICON_ROCK:
 		{
@@ -316,12 +324,12 @@ const char *perform_wind_combination(Icon_State element, Entity *doer, Entity *v
 			}
 			if(!is_immune_to_element(victim, ICON_ROCK))
 				victim->hp -= attack * 2;
-			return "Launched rock at enemy. It did A LOT of damage";
+			return "Launched rock at enemy.\nIt did A LOT of damage";
 		} break;
 		case ICON_WATER:
 		{
 			victim->state |= E_ATTACK_LOWERED;
-			return "A cloud starts raining down. Enemy attack down.";
+			return "A cloud starts raining down.\nEnemy attack down.";
 		} break;
 		case ICON_WIND:
 		{
@@ -371,7 +379,7 @@ const char *perform_water_combination(Icon_State element, Entity *doer, Entity *
 		{
 			if(!is_immune_to_element(victim, ICON_WATER))
 				victim->state |= E_ATTACK_LOWERED;
-			return "A cloud starts raining down. Enemy attack down.";
+			return "A cloud starts raining down.\nEnemy attack down.";
 		} break;
 		case ICON_VOID:
 		{
@@ -398,13 +406,13 @@ const char *perform_rock_combination(Icon_State element, Entity *doer, Entity *v
 		case ICON_FIRE:
 		{
 			doer->state |= E_ROCK_CHARGED;
-			return "The rock burns, next rock attack will deal double damage";
+			return "The rock burns,\nnext rock attack will deal double damage";
 		} break;
 		case ICON_ROCK:
 		{
 			if(!is_immune_to_element(victim, ICON_ROCK))
 				victim->hp -= (int)((f32)rock_damage * 1.5f);
-			return "Launched 2 rocks at enemy. It's a bit better than 1 rock";
+			return "Launched 2 rocks at enemy.\nIt's a bit better than 1 rock";
 		} break;
 		case ICON_WATER:
 		{
@@ -417,7 +425,7 @@ const char *perform_rock_combination(Icon_State element, Entity *doer, Entity *v
 		{
 			if(!is_immune_to_element(victim, ICON_ROCK))
 				victim->hp -= rock_damage * 2;
-			return "Launched rock at enemy. It did A LOT of damage";
+			return "Launched rock at enemy.\nIt did A LOT of damage";
 		} break;
 		case ICON_VOID:
 		{
