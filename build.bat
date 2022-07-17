@@ -19,12 +19,12 @@ REM **********************************************
 SET Name=main
 
 
-SET CompilerFlags=%CompilerFlags% -nologo -fp:fast -wd4100 -wd4201
+SET CompilerFlags=%CompilerFlags% -nologo -fp:fast -wd4100 -wd4201 
 SET Libraries=kernel32.lib user32.lib Gdi32.lib OpenGL32.lib ..\libs\*.lib
 SET Includes=-I ..\includes
 
 PUSHD build
-CL ..\code\main.c -Fe:%Name% %CompilerFlags% %Includes% /link %Libraries%
+CL ..\code\main.c -Fe:%Name% %CompilerFlags% %Includes% /link %Libraries% /subsystem:windows /ENTRY:mainCRTStartup
 POPD
 
 
