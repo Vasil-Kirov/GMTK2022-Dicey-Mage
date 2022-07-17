@@ -17,6 +17,7 @@
 *.pch
 *.png
 *.aseprite
+upheavtt.ttf
 
 # Libraries
 *.lib
