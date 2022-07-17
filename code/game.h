@@ -8,6 +8,7 @@ typedef struct {
 	int times_rolled;
 	Entity *prev_dice;
 	int player_or_enemy_flip;
+	b32 at_start;
 } Dice_Roll_Tracker;
 
 typedef struct {
@@ -17,7 +18,7 @@ typedef struct {
 	Entity *e;
 } Entity_Animate_Info;
 
-void place_icon(int icon_number, int flip);
+void place_icon(int icon_number, int flip, b32 at_start);
 void create_enemy();
 void on_icon_click(Entity *e);
 void get_attack_combination();
@@ -54,6 +55,8 @@ typedef enum
 	ICON_WIND,
 	ICON_COUNT
 } Icon_State;
+
+void roll_dice(Schedule_Tracker *tracker);
 
 b32 ai_pick_elements(Icon_State *elem1, Icon_State *elem2);
 void draw_text(Schedule_Tracker *tracker);

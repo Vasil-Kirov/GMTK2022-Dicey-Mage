@@ -2,6 +2,9 @@
 
 static b32 game_started = false;
 
+#define TIMES_TO_ROLL 5
+static const char *icons[] = {"fire_icon", "void_icon", "rock_icon", "water_icon", "wind_icon"};
+
 static Entity *c_player;
 static Entity *c_enemy;
 static Entity *clicked_icons[2];
@@ -15,6 +18,8 @@ static int last_enemy_icon;
 static int attack_frame = 0;
 static Entity *attack_animation;
 static b32 player_won = false;
+static int icon_cycle = 0;
+
 
 void game_update()
 {
@@ -29,7 +34,7 @@ void game_update()
 					GAME_PANIC_OR_END:
 					Text_Info *end_message = ALLOC_PERM(sizeof(Text_Info));
 					end_message->color = 0xFFFFFFFF;
-					end_message->scaler = 1.0f;
+					end_message->scaler = 2.0f;
 					end_message->pos = V2(-.9f, .8f);
 					if(!player_won)
 					{
@@ -177,6 +182,45 @@ void ai_take_turn(Schedule_Tracker *tracker)
 	text_info->scaler = 1.0f;
 	call_func_for(5000, draw_text, text_info);
 	is_player_turn = true;
+	
+	Icon_State new_player_icon;
+	Icon_State new_enemy_icon;
+	while((new_player_icon = rand() % ICON_COUNT) == player_icons[icon_cycle]->state);
+	while((new_enemy_icon = rand() % ICON_COUNT) == player_icons[icon_cycle]->state);
+	
+	if(player_icons[icon_cycle] != NULL)
+		player_icons[icon_cycle]->is_valid = false;
+	if(enemy_icons[icon_cycle] != NULL)
+		enemy_icons[icon_cycle]->is_valid = false;
+	
+	{
+		f32 x = normalize_between(icon_cycle * 2.5f, 0, 10, -8, 0);
+		Entity *icon = create_entity(V4(x, 2.5, x, 4), icons[new_player_icon],
+									 0xDDDDDDFF, E_CLICKABLE);
+		icon->state = new_player_icon;
+		icon->on_click = on_icon_click;
+	}
+	{
+		f32 x = -1 * normalize_between(icon_cycle * 2.5f, 0, 10, -8, 0);
+		Entity *icon = create_entity(V4(x, 2.5, x, 4), icons[new_enemy_icon],
+									 0xDDDDDDFF, E_CLICKABLE);
+		icon->state = new_enemy_icon;
+		icon->on_click = on_icon_click;
+	}
+	Dice_Roll_Tracker *dice_tracker = ALLOC_PERM(sizeof(Dice_Roll_Tracker));
+	memset(dice_tracker, 0, sizeof(Dice_Roll_Tracker));
+	dice_tracker->player_or_enemy_flip = 1;
+	dice_tracker->at_start = false;
+	
+	int ms_between_dice = get_sound_duration_in_ms("dice") / TIMES_TO_ROLL;
+	call_func_in(ms_between_dice, roll_dice, dice_tracker, true);
+	play_sound("dice");
+	
+	
+	
+	icon_cycle++;
+	if(icon_cycle >= ARR_SIZE(player_icons))
+		icon_cycle = 0;
 }
 
 void remove_immunities(Entity *e)
@@ -644,9 +688,7 @@ void animate_entity(Schedule_Tracker *tracker)
 }
 
 
-#define TIMES_TO_ROLL 5
 static int ms_between_dice = 0;
-static const char *icons[] = {"fire_icon", "void_icon", "rock_icon", "water_icon", "wind_icon"};
 static int icons_placed = 0;
 
 void roll_dice(Schedule_Tracker *tracker)
@@ -658,7 +700,8 @@ void roll_dice(Schedule_Tracker *tracker)
 	dice_track->times_rolled++;
 	if(dice_track->times_rolled > TIMES_TO_ROLL)
 	{
-		place_icon(rand() % ICON_COUNT, dice_track->player_or_enemy_flip);
+		if(dice_track->at_start)
+			place_icon(rand() % ICON_COUNT, dice_track->player_or_enemy_flip, true);
 		tracker->is_valid = false;
 	}
 	else
@@ -670,8 +713,11 @@ void roll_dice(Schedule_Tracker *tracker)
 	}	
 }
 
-void place_icon(int icon_number, int flip)
+// TODO(Vasko): this mess
+void place_icon(int icon_number, int flip, b32 at_start)
 {
+	if(icons_placed >= ARR_SIZE(player_icons))
+		icons_placed = 0;
 	f32 x = flip * normalize_between(icons_placed * 2.5f, 0, 10, -8, 0);
 	Entity *icon = create_entity(V4(x, 2.5, x, 4), icons[icon_number], 0xDDDDDDFF, E_CLICKABLE);
 	icon->state = icon_number;
@@ -681,29 +727,56 @@ void place_icon(int icon_number, int flip)
 	if(flip == -1)
 	{
 		icon->flags ^= E_CLICKABLE;
+		if(last_enemy_icon >= ARR_SIZE(player_icons))
+			last_enemy_icon = 0;
+		if(enemy_icons[last_enemy_icon] != NULL)
+		{
+			enemy_icons[last_enemy_icon]->is_valid = false;
+		}
 		enemy_icons[last_enemy_icon++] = icon;
 	}
 	else
 	{
+		if(last_player_icon >= ARR_SIZE(player_icons))
+			last_player_icon = 0;
+		if(player_icons[last_player_icon] != NULL)
+		{
+			player_icons[last_player_icon]->is_valid = false;
+		}
 		player_icons[last_player_icon++] = icon;
 	}
 	
-	if(icons_placed < 4)
+	if(at_start)
+	{
+		if(icons_placed < 4)
+		{
+			Dice_Roll_Tracker *dice_tracker = ALLOC_PERM(sizeof(Dice_Roll_Tracker));
+			memset(dice_tracker, 0, sizeof(Dice_Roll_Tracker));
+			dice_tracker->player_or_enemy_flip = flip;
+			dice_tracker->at_start = true;
+			
+			ms_between_dice = get_sound_duration_in_ms("dice") / TIMES_TO_ROLL;
+			call_func_in(ms_between_dice, roll_dice, dice_tracker, true);
+			play_sound("dice");
+		}
+		else if(flip == 1)
+			create_enemy();
+		else if(at_start)
+		{
+			is_player_turn = true;
+			game_started = true;
+		}
+	}
+	else if(flip == 1)
 	{
 		Dice_Roll_Tracker *dice_tracker = ALLOC_PERM(sizeof(Dice_Roll_Tracker));
 		memset(dice_tracker, 0, sizeof(Dice_Roll_Tracker));
 		dice_tracker->player_or_enemy_flip = flip;
+		dice_tracker->at_start = false;
 		
 		ms_between_dice = get_sound_duration_in_ms("dice") / TIMES_TO_ROLL;
 		call_func_in(ms_between_dice, roll_dice, dice_tracker, true);
 		play_sound("dice");
-	}
-	else if(flip == 1)
-		create_enemy();
-	else
-	{
-		is_player_turn = true;
-		game_started = true;
 	}
 }
 
@@ -717,6 +790,7 @@ void create_player()
 	Dice_Roll_Tracker *dice_tracker = ALLOC_PERM(sizeof(Dice_Roll_Tracker));
 	memset(dice_tracker, 0, sizeof(Dice_Roll_Tracker));
 	dice_tracker->player_or_enemy_flip = 1;
+	dice_tracker->at_start = true;
 	
 	ms_between_dice = get_sound_duration_in_ms("dice") / TIMES_TO_ROLL;
 	call_func_in(ms_between_dice, roll_dice, dice_tracker, true);
@@ -743,6 +817,7 @@ void create_enemy()
 	Dice_Roll_Tracker *dice_tracker = ALLOC_PERM(sizeof(Dice_Roll_Tracker));
 	memset(dice_tracker, 0, sizeof(Dice_Roll_Tracker));
 	dice_tracker->player_or_enemy_flip = -1;
+	dice_tracker->at_start = true;
 	
 	ms_between_dice = get_sound_duration_in_ms("dice") / TIMES_TO_ROLL;
 	call_func_in(ms_between_dice, roll_dice, dice_tracker, true);
